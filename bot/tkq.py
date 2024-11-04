@@ -23,9 +23,8 @@ scheduler = TaskiqScheduler(
     sources=[LabelScheduleSource(broker)],
 )
 
-
-@broker.task(schedule=[{"cron": "0 10 * * 1-5", "args": [1]}])
 # @broker.task(schedule=[{"cron": "*/1 * * * *", "args": [1]}])  # every minute
+@broker.task(schedule=[{"cron": "0 10 * * 1-5", "args": [1]}])
 async def heavy_task(value: int, bot: Bot = TaskiqDepends()):
     meme_url = await get_meme_url()
     await bot.send_photo(chat_id=CHAT_ID, photo=meme_url)
