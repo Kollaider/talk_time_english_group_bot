@@ -1,0 +1,63 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_ENV=production
+    networks:
+      - app_network
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    networks:
+      - app_network
+
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    environment:
+      - APP_ENV=production
+      - BOT_TOKEN=${BOT_TOKEN}
+    env_file:
+      - .env
+    networks:
+      - app_network
+    depends_on:
+      - redis
+
+  taskiq_worker:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    command: taskiq worker tkq:broker
+    environment:
+      - APP_ENV=production
+      - BOT_TOKEN=${BOT_TOKEN}
+    env_file:
+      - .env
+    networks:
+      - app_network
+    depends_on:
+      - redis
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    command: taskiq scheduler tkq:scheduler
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
